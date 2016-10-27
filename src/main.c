@@ -696,11 +696,25 @@ static int ConfigureMode(int iMode)
 
 //****************************************************************************
 //
-//!    \brief Connects to the Network in AP or STA Mode - If ForceAP Jumper is
-//!                                             Placed, Force it to AP mode
+//!    \brief Sets up the device in AP or STA Mode, depending on the presence
+//!           and connectivity of stored WLAN profiles and the AP jumper pin.
+//!
+//! On startup, if the AP jumper pin is present or if no Wireless LAN (WLAN) profiles are present,
+//! the station is put into Access Point (AP) mode, allowing the user to set WLAN profiles for
+//! the device.
+//!
+//! Otherwise one or more WLAN profiles are present on the device. In this later case, the
+//! station is put into station (STA) mode and connects to the highest signal strength
+//! WLAN profile present, falling back to the other WLAN profiles if LAN connectivity to the
+//! higher priority profile(s) is not possible. If LAN connectivity cannot be established for
+//! any of the saved profiles, then the device is put into AP mode.
+//!
+//! Once successfully connected to an access point in station mode, if at any point LAN
+//! connectivity to the access point is lost, the device trys to connect to the other present
+//! WLAN profiles based on their priority.
 //!
 //! \return  0 - Success
-//!            -1 - Failure
+//!         -1 - Failure
 //
 //****************************************************************************
 long ConnectToNetwork()
