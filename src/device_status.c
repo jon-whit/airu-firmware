@@ -43,6 +43,8 @@
 
 #include "simplelink.h"
 #include "device_status.h"
+#include "uart_if.h"
+#include "common.h"
 
 
 //******************************************************************************
@@ -75,7 +77,7 @@ void SimpleLinkPingReport(SlPingReport_t *pPingReport)
 //!
 //! This function pings to the default gateway to ensure the wlan cannection,
 //! then check for the internet connection, if present then get the ip address
-//! of Domain name "www.ti.com" and pings to it
+//! of Domain name "www.google.com" and pings to it
 //!
 //!
 //!    \return -1 for unsuccessful LAN connection, -2 for problem with internet
@@ -84,6 +86,8 @@ void SimpleLinkPingReport(SlPingReport_t *pPingReport)
 //****************************************************************************
 int ConnectionTest()
 {
+	UART_PRINT("Testing Connection to Internet.\n\r");
+
     int iStatus = 0;
   
     SlPingStartCommand_t PingParams;
@@ -101,21 +105,25 @@ int ConnectionTest()
 
 
     /* Check for Internet connection */
-    /* Querying for ti.com IP address */
+    /* Querying for google.com IP address */
+    UART_PRINT("Querying for google.com IP address.\n\r");
     iStatus = sl_NetAppDnsGetHostByName((signed char *)"www.google.com",
-                                           10, &ulIpAddr, SL_AF_INET);
+                                           14, &ulIpAddr, SL_AF_INET);
+
     if (iStatus < 0)
     {
         // LAN connection is successful
         // Problem with Internet connection
+    	UART_PRINT("Internet Connection Test [Failed].\n\r");
         return -2;
     }
 
 
-    // Replace the ping address to match ti.com IP address
+    // Replace the ping address to match google.com IP address
     PingParams.Ip = ulIpAddr;
 
-    // Try to ping www.ti.com
+    // Try to ping www.google.com
+    UART_PRINT("Starting PING Test to google.com.\n\r");
     sl_NetAppPingStart((SlPingStartCommand_t*)&PingParams, SL_AF_INET,
              (SlPingReport_t*)&PingReport, SimpleLinkPingReport);
 
@@ -128,6 +136,7 @@ int ConnectionTest()
     {
         // LAN connection is successful
         // Internet connection is successful
+    	UART_PRINT("Internet Connection Test [Success].\n\r");
         g_uiPingPacketsRecv = 0;
         return 0;
     }
@@ -135,6 +144,7 @@ int ConnectionTest()
     {
         // LAN connection is successful
         // Problem with Internet connection
+    	UART_PRINT("Internet Connection Test [Failed].\n\r");
         return -2;
     }
     

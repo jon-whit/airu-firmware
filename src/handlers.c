@@ -1,3 +1,7 @@
+#include "simplelink.h"
+#include "netcfg.h"
+
+#include "common.h"
 #include "handlers.h"
 
 //*****************************************************************************
@@ -16,154 +20,154 @@
 //*****************************************************************************
 void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 {
-//    if(pWlanEvent == NULL)
-//    {
-//        UART_PRINT("Null pointer\n\r");
-//        LOOP_FOREVER();
-//    }
-//    switch(pWlanEvent->Event)
-//    {
-//        case SL_WLAN_CONNECT_EVENT:
-//        {
-//            SET_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION);
-//
-//            //
-//            // Information about the connected AP (like name, MAC etc) will be
-//            // available in 'slWlanConnectAsyncResponse_t'
-//            // Applications can use it if required
-//            //
-//            //  slWlanConnectAsyncResponse_t *pEventData = NULL;
-//            // pEventData = &pWlanEvent->EventData.STAandP2PModeWlanConnected;
-//            //
-//
-//            // Copy new connection SSID and BSSID to global parameters
-//            memcpy(g_ucConnectionSSID,pWlanEvent->EventData.
-//                   STAandP2PModeWlanConnected.ssid_name,
-//                   pWlanEvent->EventData.STAandP2PModeWlanConnected.ssid_len);
-//            memcpy(g_ucConnectionBSSID,
-//                   pWlanEvent->EventData.STAandP2PModeWlanConnected.bssid,
-//                   SL_BSSID_LENGTH);
-//
-//            UART_PRINT("[WLAN EVENT] Device Connected to the AP: %s , "
-//                       "BSSID: %x:%x:%x:%x:%x:%x\n\r",
-//                      g_ucConnectionSSID,g_ucConnectionBSSID[0],
-//                      g_ucConnectionBSSID[1],g_ucConnectionBSSID[2],
-//                      g_ucConnectionBSSID[3],g_ucConnectionBSSID[4],
-//                      g_ucConnectionBSSID[5]);
-//        }
-//        break;
-//
-//        case SL_WLAN_DISCONNECT_EVENT:
-//        {
-//            slWlanConnectAsyncResponse_t*  pEventData = NULL;
-//
-//            CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION);
-//            CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_IP_AQUIRED);
-//
-//            pEventData = &pWlanEvent->EventData.STAandP2PModeDisconnected;
-//
-//            // If the user has initiated 'Disconnect' request,
-//            //'reason_code' is SL_WLAN_DISCONNECT_USER_INITIATED_DISCONNECTION
-//            if(SL_WLAN_DISCONNECT_USER_INITIATED_DISCONNECTION == pEventData->reason_code)
-//            {
-//                UART_PRINT("[WLAN EVENT] Device disconnected from the AP: %s, "
-//                           "BSSID: %x:%x:%x:%x:%x:%x on application's "
-//                           "request \n\r",
-//                           g_ucConnectionSSID,g_ucConnectionBSSID[0],
-//                           g_ucConnectionBSSID[1],g_ucConnectionBSSID[2],
-//                           g_ucConnectionBSSID[3],g_ucConnectionBSSID[4],
-//                           g_ucConnectionBSSID[5]);
-//            }
-//            else
-//            {
-//                UART_PRINT("[WLAN ERROR] Device disconnected from the AP AP: %s, "
-//                           "BSSID: %x:%x:%x:%x:%x:%x on an ERROR..!! \n\r",
-//                           g_ucConnectionSSID,g_ucConnectionBSSID[0],
-//                           g_ucConnectionBSSID[1],g_ucConnectionBSSID[2],
-//                           g_ucConnectionBSSID[3],g_ucConnectionBSSID[4],
-//                           g_ucConnectionBSSID[5]);
-//            }
-//            memset(g_ucConnectionSSID,0,sizeof(g_ucConnectionSSID));
-//            memset(g_ucConnectionBSSID,0,sizeof(g_ucConnectionBSSID));
-//        }
-//        break;
-//
-//        case SL_WLAN_STA_CONNECTED_EVENT:
-//        {
-//            // when device is in AP mode and any client connects to device cc3xxx
-//            //SET_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION);
-//            //CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION_FAILED);
-//
-//            //
-//            // Information about the connected client (like SSID, MAC etc) will
-//            // be available in 'slPeerInfoAsyncResponse_t' - Applications
-//            // can use it if required
-//            //
-//            // slPeerInfoAsyncResponse_t *pEventData = NULL;
-//            // pEventData = &pSlWlanEvent->EventData.APModeStaConnected;
-//            //
-//
-//            UART_PRINT("[WLAN EVENT] Station connected to device\n\r");
-//        }
-//        break;
-//
-//        case SL_WLAN_STA_DISCONNECTED_EVENT:
-//        {
-//            // when client disconnects from device (AP)
-//            //CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION);
-//            //CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_IP_LEASED);
-//
-//            //
-//            // Information about the connected client (like SSID, MAC etc) will
-//            // be available in 'slPeerInfoAsyncResponse_t' - Applications
-//            // can use it if required
-//            //
-//            // slPeerInfoAsyncResponse_t *pEventData = NULL;
-//            // pEventData = &pSlWlanEvent->EventData.APModestaDisconnected;
-//            //
-//            UART_PRINT("[WLAN EVENT] Station disconnected from device\n\r");
-//        }
-//        break;
-//
-//        case SL_WLAN_SMART_CONFIG_COMPLETE_EVENT:
-//        {
-//            //SET_STATUS_BIT(g_ulStatus, STATUS_BIT_SMARTCONFIG_START);
-//
-//            //
-//            // Information about the SmartConfig details (like Status, SSID,
-//            // Token etc) will be available in 'slSmartConfigStartAsyncResponse_t'
-//            // - Applications can use it if required
-//            //
-//            //  slSmartConfigStartAsyncResponse_t *pEventData = NULL;
-//            //  pEventData = &pSlWlanEvent->EventData.smartConfigStartResponse;
-//            //
-//
-//        }
-//        break;
-//
-//        case SL_WLAN_SMART_CONFIG_STOP_EVENT:
-//        {
-//            // SmartConfig operation finished
-//            //CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_SMARTCONFIG_START);
-//
-//            //
-//            // Information about the SmartConfig details (like Status, padding
-//            // etc) will be available in 'slSmartConfigStopAsyncResponse_t' -
-//            // Applications can use it if required
-//            //
-//            // slSmartConfigStopAsyncResponse_t *pEventData = NULL;
-//            // pEventData = &pSlWlanEvent->EventData.smartConfigStopResponse;
-//            //
-//        }
-//        break;
-//
-//        default:
-//        {
-//            UART_PRINT("[WLAN EVENT] Unexpected event [0x%x]\n\r",
-//                       pWlanEvent->Event);
-//        }
-//        break;
-//    }
+    if(pWlanEvent == NULL)
+    {
+        UART_PRINT("Null pointer\n\r");
+        LOOP_FOREVER();
+    }
+    switch(pWlanEvent->Event)
+    {
+        case SL_WLAN_CONNECT_EVENT:
+        {
+            SET_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION);
+
+            //
+            // Information about the connected AP (like name, MAC etc) will be
+            // available in 'slWlanConnectAsyncResponse_t'
+            // Applications can use it if required
+            //
+            //  slWlanConnectAsyncResponse_t *pEventData = NULL;
+            // pEventData = &pWlanEvent->EventData.STAandP2PModeWlanConnected;
+            //
+
+            // Copy new connection SSID and BSSID to global parameters
+            memcpy(g_ucConnectionSSID,pWlanEvent->EventData.
+                   STAandP2PModeWlanConnected.ssid_name,
+                   pWlanEvent->EventData.STAandP2PModeWlanConnected.ssid_len);
+            memcpy(g_ucConnectionBSSID,
+                   pWlanEvent->EventData.STAandP2PModeWlanConnected.bssid,
+                   SL_BSSID_LENGTH);
+
+            UART_PRINT("[WLAN EVENT] Device Connected to the AP: %s , "
+                       "BSSID: %x:%x:%x:%x:%x:%x\n\r",
+                      g_ucConnectionSSID,g_ucConnectionBSSID[0],
+                      g_ucConnectionBSSID[1],g_ucConnectionBSSID[2],
+                      g_ucConnectionBSSID[3],g_ucConnectionBSSID[4],
+                      g_ucConnectionBSSID[5]);
+        }
+        break;
+
+        case SL_WLAN_DISCONNECT_EVENT:
+        {
+            slWlanConnectAsyncResponse_t*  pEventData = NULL;
+
+            CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION);
+            CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_IP_AQUIRED);
+
+            pEventData = &pWlanEvent->EventData.STAandP2PModeDisconnected;
+
+            // If the user has initiated 'Disconnect' request,
+            //'reason_code' is SL_WLAN_DISCONNECT_USER_INITIATED_DISCONNECTION
+            if(SL_WLAN_DISCONNECT_USER_INITIATED_DISCONNECTION == pEventData->reason_code)
+            {
+                UART_PRINT("[WLAN EVENT] Device disconnected from the AP: %s, "
+                           "BSSID: %x:%x:%x:%x:%x:%x on application's "
+                           "request \n\r",
+                           g_ucConnectionSSID,g_ucConnectionBSSID[0],
+                           g_ucConnectionBSSID[1],g_ucConnectionBSSID[2],
+                           g_ucConnectionBSSID[3],g_ucConnectionBSSID[4],
+                           g_ucConnectionBSSID[5]);
+            }
+            else
+            {
+                UART_PRINT("[WLAN ERROR] Device disconnected from the AP AP: %s, "
+                           "BSSID: %x:%x:%x:%x:%x:%x on an ERROR..!! \n\r",
+                           g_ucConnectionSSID,g_ucConnectionBSSID[0],
+                           g_ucConnectionBSSID[1],g_ucConnectionBSSID[2],
+                           g_ucConnectionBSSID[3],g_ucConnectionBSSID[4],
+                           g_ucConnectionBSSID[5]);
+            }
+            memset(g_ucConnectionSSID,0,sizeof(g_ucConnectionSSID));
+            memset(g_ucConnectionBSSID,0,sizeof(g_ucConnectionBSSID));
+        }
+        break;
+
+        case SL_WLAN_STA_CONNECTED_EVENT:
+        {
+            // when device is in AP mode and any client connects to device cc3xxx
+            //SET_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION);
+            //CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION_FAILED);
+
+            //
+            // Information about the connected client (like SSID, MAC etc) will
+            // be available in 'slPeerInfoAsyncResponse_t' - Applications
+            // can use it if required
+            //
+            // slPeerInfoAsyncResponse_t *pEventData = NULL;
+            // pEventData = &pSlWlanEvent->EventData.APModeStaConnected;
+            //
+
+            UART_PRINT("[WLAN EVENT] Station connected to device\n\r");
+        }
+        break;
+
+        case SL_WLAN_STA_DISCONNECTED_EVENT:
+        {
+            // when client disconnects from device (AP)
+            //CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION);
+            //CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_IP_LEASED);
+
+            //
+            // Information about the connected client (like SSID, MAC etc) will
+            // be available in 'slPeerInfoAsyncResponse_t' - Applications
+            // can use it if required
+            //
+            // slPeerInfoAsyncResponse_t *pEventData = NULL;
+            // pEventData = &pSlWlanEvent->EventData.APModestaDisconnected;
+            //
+            UART_PRINT("[WLAN EVENT] Station disconnected from device\n\r");
+        }
+        break;
+
+        case SL_WLAN_SMART_CONFIG_COMPLETE_EVENT:
+        {
+            //SET_STATUS_BIT(g_ulStatus, STATUS_BIT_SMARTCONFIG_START);
+
+            //
+            // Information about the SmartConfig details (like Status, SSID,
+            // Token etc) will be available in 'slSmartConfigStartAsyncResponse_t'
+            // - Applications can use it if required
+            //
+            //  slSmartConfigStartAsyncResponse_t *pEventData = NULL;
+            //  pEventData = &pSlWlanEvent->EventData.smartConfigStartResponse;
+            //
+
+        }
+        break;
+
+        case SL_WLAN_SMART_CONFIG_STOP_EVENT:
+        {
+            // SmartConfig operation finished
+            //CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_SMARTCONFIG_START);
+
+            //
+            // Information about the SmartConfig details (like Status, padding
+            // etc) will be available in 'slSmartConfigStopAsyncResponse_t' -
+            // Applications can use it if required
+            //
+            // slSmartConfigStopAsyncResponse_t *pEventData = NULL;
+            // pEventData = &pSlWlanEvent->EventData.smartConfigStopResponse;
+            //
+        }
+        break;
+
+        default:
+        {
+            UART_PRINT("[WLAN EVENT] Unexpected event [0x%x]\n\r",
+                       pWlanEvent->Event);
+        }
+        break;
+    }
 }
 
 //*****************************************************************************

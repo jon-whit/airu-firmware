@@ -81,14 +81,16 @@ long SmartConfigConnect()
 
 
     // Set AUTO policy
+    UART_PRINT("Setting WLAN Policy to AUTO.");
     lRetVal = sl_WlanPolicySet(SL_POLICY_CONNECTION,
-                                SL_CONNECTION_POLICY(1,0,0,0,0),
+                                SL_CONNECTION_POLICY(1,0,0,0,1),
                                 &policyVal,
                                 1 /*PolicyValLen*/);
     ASSERT_ON_ERROR(lRetVal);
 
     // Start SmartConfig
     // This example uses the unsecured SmartConfig method
+    UART_PRINT("Starting SmartConfig.\n");
     lRetVal = sl_WlanSmartConfigStart(0,                  //groupIdBitmask
                            SMART_CONFIG_CIPHER_NONE,      //cipher
                            0,                             //publicKeyLen
@@ -98,6 +100,7 @@ long SmartConfigConnect()
                            NULL,                          //group1Key
                            NULL);                         //group2Key      
     ASSERT_ON_ERROR(lRetVal);
+    UART_PRINT("SmartConfig Started.\n");
 
     return SUCCESS;
 }
