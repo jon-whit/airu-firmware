@@ -20,6 +20,8 @@
 
 // OS includes
 #include "osi.h"
+#include "freertos.h"
+#include "task.h"
 
 // Common interface includes
 #include "gpio_if.h"
@@ -38,9 +40,16 @@
 
 #define APPLICATION_VERSION              "1.1.0"
 #define APP_NAME                         "AirU-Firmware"
-#define OOB_TASK_PRIORITY                1
+
+#define OOB_TASK_PRIORITY                2
+#define DATAGATHER_TASK_PRIORITY		 1
+#define DATAUPLOAD_TASK_PRIORITY         1
 #define SPAWN_TASK_PRIORITY              9
+
 #define OSI_STACK_SIZE                   2048
+#define DATAGATHER_STACK_SIZE            1024
+#define DATAUPLOAD_STACK_SIZE            512
+
 #define AP_SSID_LEN_MAX                 32
 #define SH_GPIO_3                       3       /* P58 - Device Mode */
 #define AUTO_CONNECTION_TIMEOUT_COUNT   50      /* 5 Sec */
@@ -945,6 +954,52 @@ static void OOBTask(void *pvParameters)
     }
 }
 
+//****************************************************************************
+//
+//!    \brief DataGather Application Task - Samples the sensors every 1 minute.
+//! \param[in]                  pvParameters is the data passed to the Task
+//!
+//! \return                        None
+//
+//****************************************************************************
+static void DataGatherTask(void *pvParameters)
+{
+	TickType_t xLastWakeTime;
+	const TickType_t xFreq = 5000 / portTICK_PERIOD_MS; // 5 seconds
+
+	xLastWakeTime = xTaskGetTickCount();
+
+	while (1)
+	{
+		vTaskDelayUntil( &xLastWakeTime, xFreq );
+
+		// Write over UART
+		//UART_PRINT("%f F\r\n", fCurrentTemp);
+		UART_PRINT("DataGatherTask\r\n");
+	}
+}
+
+//****************************************************************************
+//
+//!    \brief DataUpload Application Task - Uploads collected data every 90 minutes.
+//! \param[in]                  pvParameters is the data passed to the Task
+//!
+//! \return                        None
+//
+//****************************************************************************
+//static void DataUploadTask(void *pvParameters)
+//{
+//
+//	int i = 0;
+//	while (1)
+//	{
+//		// Sleep 5s
+//		osi_Sleep(5000);
+//
+//		UART_PRINT("DataUpload: %d\n", i++);
+//	}
+//}
+
 //*****************************************************************************
 //
 //! Application startup display on UART
@@ -993,7 +1048,7 @@ static void BoardInit(void)
     PRCMCC3200MCUInit();
 }
 
-void main()
+int main( void )
 {
     long lRetVal = -1;
 
@@ -1019,6 +1074,22 @@ void main()
     // Turn Off the LEDs
     GPIO_IF_LedOff(MCU_RED_LED_GPIO);
 
+    // I2C Init
+    lRetVal = I2C_IF_Open(I2C_MASTER_MODE_FST);
+    if(lRetVal < 0)
+    {
+        ERR_PRINT(lRetVal);
+        LOOP_FOREVER();
+    }
+
+    // Init Temprature Sensor
+    lRetVal = TMP006DrvOpen();
+    if(lRetVal < 0)
+    {
+        ERR_PRINT(lRetVal);
+        LOOP_FOREVER();
+    }
+
     // Simplelink Spawn Task
     lRetVal = VStartSimpleLinkSpawnTask(SPAWN_TASK_PRIORITY);
     if(lRetVal < 0)
@@ -1028,21 +1099,38 @@ void main()
     }    
     
     // Create OOB Task
-    lRetVal = osi_TaskCreate(OOBTask, (signed char*)"OOBTask", \
+    lRetVal = osi_TaskCreate(OOBTask, "OOBTask", \
                                 OSI_STACK_SIZE, NULL, \
                                 OOB_TASK_PRIORITY, NULL );
     if(lRetVal < 0)
     {
         ERR_PRINT(lRetVal);
         LOOP_FOREVER();
-    }    
+    }
+
+    // Create the DataGather Task
+    lRetVal = osi_TaskCreate(DataGatherTask, "DataGatherTask", \
+    							DATAGATHER_STACK_SIZE, NULL, \
+								DATAGATHER_TASK_PRIORITY, NULL);
+    if(lRetVal < 0)
+	{
+		ERR_PRINT(lRetVal);
+		LOOP_FOREVER();
+	}
+
+    // Create the DataUpload Task
+//    lRetVal = osi_TaskCreate(DataUploadTask, "DataUploadTask", \
+//        						 DATAUPLOAD_STACK_SIZE, NULL, \
+//								 DATAUPLOAD_TASK_PRIORITY, NULL);
+//    if(lRetVal < 0)
+//	{
+//		ERR_PRINT(lRetVal);
+//		LOOP_FOREVER();
+//	}
 
     // Start OS Scheduler
     osi_start();
 
-    while (1)
-    {
-
-    }
+    return 0;
 
 }
