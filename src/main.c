@@ -20,6 +20,8 @@
 
 // OS includes
 #include "osi.h"
+#include "freertos.h"
+#include "task.h"
 
 // Common interface includes
 #include "gpio_if.h"
@@ -38,9 +40,14 @@
 
 #define APPLICATION_VERSION              "1.1.0"
 #define APP_NAME                         "AirU-Firmware"
+
 #define OOB_TASK_PRIORITY                1
+#define DATAGATHER_TASK_PRIORITY		 3
+#define DATAUPLOAD_TASK_PRIORITY         2
 #define SPAWN_TASK_PRIORITY              9
+
 #define OSI_STACK_SIZE                   2048
+
 #define AP_SSID_LEN_MAX                 32
 #define SH_GPIO_3                       3       /* P58 - Device Mode */
 #define AUTO_CONNECTION_TIMEOUT_COUNT   50      /* 5 Sec */
@@ -945,6 +952,56 @@ static void OOBTask(void *pvParameters)
     }
 }
 
+//****************************************************************************
+//
+//!    \brief DataGather Application Task - Samples the sensors every 1 minute.
+//! \param[in]                  pvParameters is the data passed to the Task
+//!
+//! \return                        None
+//
+//****************************************************************************
+static void DataGatherTask(void *pvParameters)
+{
+	TickType_t xLastWakeTime;
+	const TickType_t xFreq = 30000; // 30 seconds
+
+	xLastWakeTime = xTaskGetTickCount();
+
+	int i = 0;
+	while (1)
+	{
+		vTaskDelayUntil(&xLastWakeTime, xFreq);
+
+		// Write over UART
+		UART_PRINT("%d\r\n", i++);
+	}
+}
+
+//****************************************************************************
+//
+//!    \brief DataUpload Application Task - Uploads collected data every 90 minutes.
+//! \param[in]                  pvParameters is the data passed to the Task
+//!
+//! \return                        None
+//
+//****************************************************************************
+//static void DataUploadTask(void *pvParameters)
+//{
+//	TickType_t xLastWakeTime;
+//	const TickType_t xFreq = 60000; // 1 minute
+//
+//	xLastWakeTime = xTaskGetTickCount();
+//
+//	int i = 0;
+//	while (1)
+//	{
+//		vTaskDelayUntil(&xLastWakeTime, xFreq);
+//
+//		// Write over UART
+//		UART_PRINT("%d\r\n", i++);
+//	}
+//}
+
 //*****************************************************************************
 //
 //! Application startup display on UART
@@ -974,17 +1031,14 @@ static void DisplayBanner(char * AppName)
 //*****************************************************************************
 static void BoardInit(void)
 {
-/* In case of TI-RTOS vector table is initialize by OS itself */
-#ifndef USE_TIRTOS
+
     // Set vector table base
-#if defined(ccs)
+#if defined(ccs) || defined(gcc)
     MAP_IntVTableBaseSet((unsigned long)&g_pfnVectors[0]);
-#endif  //ccs
+#endif
 #if defined(ewarm)
     MAP_IntVTableBaseSet((unsigned long)&__vector_table);
-#endif  //ewarm
-    
-#endif  //USE_TIRTOS
+#endif
     
     // Enable Processor
     MAP_IntMasterEnable();
@@ -995,9 +1049,7 @@ static void BoardInit(void)
 
 void main()
 {
-    long lRetVal = -1;
-
-    // Board Initilization
+    // Board Initialization
     BoardInit();
     
     // Configure the pinmux settings for the peripherals exercised
@@ -1020,22 +1072,20 @@ void main()
     GPIO_IF_LedOff(MCU_RED_LED_GPIO);
 
     // Simplelink Spawn Task
-    lRetVal = VStartSimpleLinkSpawnTask(SPAWN_TASK_PRIORITY);
-    if(lRetVal < 0)
-    {
-        ERR_PRINT(lRetVal);
-        LOOP_FOREVER();
-    }    
+    VStartSimpleLinkSpawnTask(SPAWN_TASK_PRIORITY);
     
     // Create OOB Task
-    lRetVal = osi_TaskCreate(OOBTask, (signed char*)"OOBTask", \
+    osi_TaskCreate(OOBTask, (signed char*)"OOBTask", \
                                 OSI_STACK_SIZE, NULL, \
                                 OOB_TASK_PRIORITY, NULL );
-    if(lRetVal < 0)
-    {
-        ERR_PRINT(lRetVal);
-        LOOP_FOREVER();
-    }    
+
+    // Create the DataGather Task
+    osi_TaskCreate(DataGatherTask, (signed char*)"DataGatherTask",
+    						 1024, NULL, DATAGATHER_TASK_PRIORITY, NULL);
+
+//    // Create the DataUpload Task
+//    osi_TaskCreate(DataUploadTask, (signed char*)"DataUploadTask",
+//        						 OSI_STACK_SIZE, NULL, DATAUPLOAD_TASK_PRIORITY, NULL);
 
     // Start OS Scheduler
     osi_start();
