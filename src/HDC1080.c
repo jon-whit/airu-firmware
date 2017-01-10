@@ -1,5 +1,7 @@
 // Common Interface includes
 #include "i2c_if.h"
+#include "rom_map.h"
+#include "utils.h"
 
 // Application includes
 #include "HDC1080.h"
@@ -48,7 +50,14 @@ float GetTemperature(void)
 	uint8_t regaddr = HDC1080_TEMP_REG;
 	uint8_t regval[2];
 
-	I2C_IF_ReadFrom(HDC1080_DEV_ADDR, &regaddr, 1, regval, 2);
+	I2C_IF_Write(HDC1080_DEV_ADDR, &regaddr, 1, 0);
+
+
+	// TODO: Change to OS based delay, and add clarity to time param
+	MAP_UtilsDelay((60*30*1000)); // 7.5msec
+
+	I2C_IF_Read(HDC1080_DEV_ADDR, regval, 2);
+
 	// TODO: Handle error case here.
 
 	int16_t res = (regval[0] << 8) | regval[1];
@@ -63,7 +72,13 @@ float GetHumidity(void)
 	uint8_t regaddr = HDC1080_HUM_REG;
 	uint8_t regval[2];
 
-	I2C_IF_ReadFrom(HDC1080_DEV_ADDR, &regaddr, 1, regval, 2);
+	I2C_IF_Write(HDC1080_DEV_ADDR, &regaddr, 1, 0);
+
+	// TODO: Change to OS based delay, and add clarity to time param
+	MAP_UtilsDelay((60*30*1000)); // 7.5msec
+
+	I2C_IF_Read(HDC1080_DEV_ADDR, regval, 2);
+
 	// TODO: Handle error case here.
 
 	uint16_t res = (regval[0] << 8) | regval[1];
