@@ -1,7 +1,10 @@
 //*****************************************************************************
+// pinmux.h
 //
-// Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/ 
-// 
+// configure the device pins for different signals
+//
+// Copyright (c) 2016, Texas Instruments Incorporated - http://www.ti.com/ 
+// All rights reserved.
 // 
 //  Redistribution and use in source and binary forms, with or without 
 //  modification, are permitted provided that the following conditions 
@@ -33,15 +36,14 @@
 //
 //*****************************************************************************
 
-// This file was automatically generated on 7/21/2014 at 3:06:20 PM
-// by TI PinMux version 3.0.334
+// This file was automatically generated on 2/13/2017 at 10:08:56 AM
+// by TI PinMux version 4.0.1482 
 //
 //*****************************************************************************
 
-#ifndef __PINMUX_H__
-#define __PINMUX_H__
+#ifndef __PIN_MUX_CONFIG_H__
+#define __PIN_MUX_CONFIG_H__
 
 extern void PinMuxConfig(void);
 
-#endif //  __PINMUX_H__
-
+#endif //  __PIN_MUX_CONFIG_H__
